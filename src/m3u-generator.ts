@@ -3,7 +3,8 @@ import {
   M3uMedia,
   M3uPlaylist,
   M3uAttributes,
-  DEFAULT_MEDIA_DURATION
+  DEFAULT_MEDIA_DURATION,
+  PlaylistAttributes
 } from "./m3u-playlist";
 
 /**
@@ -23,10 +24,30 @@ export class M3uGenerator {
    * ```
    */
   static generate(playlist: M3uPlaylist): string {
+    const extm3u = M3uDirectives.EXTM3U + " " + this.getPlaylistAttributes(playlist.attributes)
     const pls = playlist.title ? `${M3uDirectives.PLAYLIST}:${playlist.title}` : undefined;
-    const medias = playlist.medias.map(item => this.getMedia(item)).join('\n');
-    return [M3uDirectives.EXTM3U, pls, medias].filter(item => item).join('\n');
+    const medias = playlist.medias.map(item => this.getMedia(item)).join('\n\n');
+    return [extm3u, pls, medias].filter(item => item).join('\n');
   }
+
+  /**
+   * Playlist attributes to string
+   * @param attributes - PlaylistAttributes
+   * @returns attributes string
+   * @private
+   */
+  private static getPlaylistAttributes(attributes: PlaylistAttributes): string {
+    const keys = Object.keys(attributes);
+    return keys.length ? ' ' + keys.map(key => {
+      const val = attributes[key];
+      if (val instanceof String) {
+        return `${key}="${attributes[key]}"`
+      } else {
+        return `${key}=${attributes[key]}`
+      }
+    }).join(' ') : '';
+  }
+
 
   /**
    * Get generated media part string from m3u playlist media object
@@ -38,7 +59,8 @@ export class M3uGenerator {
     const attributesString = this.getAttributes(media.attributes);
     const info = this.shouldAddInfoDirective(media, attributesString) ? `${M3uDirectives.EXTINF}:${media.duration}${attributesString},${media.name}` : null;
     const group = media.group ? `${M3uDirectives.EXTGRP}:${media.group}` : null;
-    return [info, group, media.location].filter(item => item).join('\n');
+    const unknownDirectivesString = media.unknownDirectives.join('\n');
+    return [info, group, unknownDirectivesString, media.location].filter(item => item).join('\n');
   }
 
   /**

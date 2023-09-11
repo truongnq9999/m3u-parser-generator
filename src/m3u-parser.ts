@@ -3,7 +3,8 @@ import {
   M3uMedia,
   M3uAttributes,
   M3uDirectives,
-  M3U_COMMENT
+  M3U_COMMENT,
+  PlaylistAttributes
 } from "./m3u-playlist";
 
 /**
@@ -79,7 +80,33 @@ export class M3uParser {
         playlist.title = trackInformation;
         break;
       }
+      default: {
+        media.unknownDirectives.push(item)
+      }
     }
+  }
+
+  /**
+   * Process EXTM3U
+   * @param item - actual line of m3u playlist string e.g. '#EXTINF:-1 tvg-id="" group-title="",Tv Name'
+   * @param playlist - m3u playlist object processed until now
+   * @private
+   */
+  private static processExtM3u(item: string, playlist: M3uPlaylist): void {
+    const playlistAttributes: PlaylistAttributes = new PlaylistAttributes();
+    let attributesString = item.substring(M3uDirectives.EXTM3U.length + 1);
+    const attributeValuePair = attributesString.split(' ');
+    attributeValuePair.forEach((item) => {
+      const [key, value] = item.split('=');
+      if (key === 'url-tvg') {
+        playlistAttributes["url-tvg"] = value.replace('"', '').replace('"', '');
+      } else if (key === 'tvg-shift') {
+        playlistAttributes["tvg-shift"] = Number(value);
+      } else if (key === 'm3uautoload') {
+        playlistAttributes["m3uautoload"] = Number(value);
+      }
+    });
+    playlist.attributes = playlistAttributes;
   }
 
   /**
@@ -93,7 +120,9 @@ export class M3uParser {
     const playlist = new M3uPlaylist();
     let media = new M3uMedia('');
     lines.forEach(item => {
-      if (this.isDirective(item)) {
+      if (this.isExtM3u(item)) {
+        this.processExtM3u(item, playlist);
+      } else if (this.isDirective(item)) {
         this.processDirective(item, playlist, media, ignoreErrors);
       } else {
         media.location = item;
@@ -102,6 +131,16 @@ export class M3uParser {
       }
     });
     return playlist;
+  }
+
+  /**
+   * Is directive method detect if line is startsWith M3uDirectives.EXTM3U
+   * @param item - string line of playlist
+   * @returns true if it is line startsWith M3uDirectives.EXTM3U
+   * @private
+   */
+  private static isExtM3u(item: string): boolean {
+    return item.startsWith(M3uDirectives.EXTM3U);
   }
 
   /**

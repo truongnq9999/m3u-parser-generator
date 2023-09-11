@@ -27,6 +27,10 @@ export class M3uPlaylist {
    */
   title = '';
   /**
+   * Attributes of playlist. Default value is empty attributes object.
+   */
+  attributes: PlaylistAttributes = new PlaylistAttributes();
+  /**
    * M3u media objects
    * @example
    * ```ts
@@ -79,6 +83,11 @@ export class M3uMedia {
   attributes: M3uAttributes = new M3uAttributes();
 
   /**
+   * Unknown directive
+   */
+  unknownDirectives: String[] = [];
+
+  /**
    * Constructor
    * @param location - location of stream
    */
@@ -119,4 +128,30 @@ export class M3uAttributes {
    * unknown user defined attribute
    */
   [key: string]: string | undefined;
+}
+
+
+/**
+ * Playlist attributes. Can contains know attributes, or unknown custom user defined.
+ */
+export class PlaylistAttributes {
+  /**
+   * url-tvg attribute
+   */
+  'url-tvg'?: string;
+
+  /**
+   * tvg-shift attribute
+   */
+  'tvg-shift'?: number;
+  /**
+   * m3uautoload attribute
+   */
+  'm3uautoload'?: number;
+
+  /**
+   * unknown user defined attribute
+   */
+  [key: string]: any | undefined;
+
 }
