@@ -24,7 +24,7 @@ export class M3uParser {
     if (!attributesString) {
       return attributes;
     }
-    const attributeValuePair = attributesString.split('" ');
+    const attributeValuePair = attributesString.trim().split('" ');
     attributeValuePair.forEach((item) => {
       const [key, value] = item.split('="');
       if (!ignoreErrors && value == null) {
