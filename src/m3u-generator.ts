@@ -40,7 +40,7 @@ export class M3uGenerator {
     const keys = Object.keys(attributes);
     return keys.length ? ' ' + keys.map(key => {
       const val = attributes[key];
-      if (val instanceof String) {
+      if (typeof val === 'string' || val instanceof String) {
         return `${key}="${attributes[key]}"`
       } else {
         return `${key}=${attributes[key]}`
